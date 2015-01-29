@@ -34,7 +34,7 @@ from scipy import interpolate
 def randomfunction(N=N):
     """makes a smooth squiggly function """
     #number of pts to go through  ~num of curves
-    nc=np.random.choice(10)+5 #from 0 to 15 dont add too many pts
+    nc=np.random.choice(10)+5 #from 5 to 15. dont add too many pts
     #with these vales
     ys=np.random.randn(nc)
     #sprinkle it in the domain
@@ -98,11 +98,12 @@ def ismax(ipt,tol=.02):
     #if not 0<=ipt<=N: raise ValueError('index not in range')
     #if ipt in computedis: return
     #if ipt==ixmax: return True
-    tol=tol*(max(Xtest)-min(Xtest))
-    if Xtest[ipt]<Xtest[ipt]<Xtest[ipt]+tol:
+    tol=tol*(Xtest[-1][0]-Xtest[0][0])
+    if Xtest[ixmax]-tol<Xtest[ipt]<=Xtest[ixmax]+tol: #equals is important!..
+                                    #...what if tol ~=0 ?
         return True
     else:
-        compute(ipt) 
+        compute(ipt) #this shouldnt be here
     return False
 
 init_randomfuction()
@@ -116,19 +117,27 @@ def play(player):
         n+=1
         if guess==True: return n
         else: continue
+    
 
 
 class player(object):
     my_guesses=[]
 
-from time import sleep
+
+class puter(player):
+    self.ixp=ip
+    
+    def guess(self):
+        self.ixp=
+    
+
 class human(player):
     
     def __init__(self):
         self.fig = pl.figure()
         pl.ylim((min(yall)-.2*(-min(yall)+max(yall))
                 ,max(yall)+.2*(-min(yall)+max(yall)) )) #+some margin
-        pl.xlim((min(Xtest),max(Xtest)))
+        pl.xlim((min(Xtest)-.5,max(Xtest)+.5))
         pl.title("Guess where the max is")
         pl.plot(Xtest[ip],[yall[ip]],'bo')
         #pl.show(block=False)
@@ -142,41 +151,40 @@ class human(player):
     def guess(self):
         #self.cid = self.fig.canvas.mpl_connect('button_press_event' 
         #    , lambda event: self.guessclick(event))
-        self.guess_clicked=False
         #pl.show(block=False)
-        while (pl.waitforbuttonpress(timeout=-1) !=False ): #false is mouse            
-            continue
+        while ( pl.waitforbuttonpress(timeout=-1) ==False ): #false is mouse
+            if ( self.guesschk(self.last_click)==True ): break
+            else: continue
         #while (self.guess_clicked==False):# continue
             #pl.pause(1)
             #sleep(.1);# print 'not clicked'
             #self.fig.canvas.mpl_disconnect(cid)
-        print 'clicked'
-        while(self.guesschk(self.last_click)==False):continue
-        self.my_guesses.append(self.last_click)
+        #while(self.guesschk(self.last_click)==False): continue
+        igs=self.last_click
+        self.my_guesses.append(igs)
         #self.fig.canvas.mpl_disconnect(self.cid)
+        pl.plot([Xtest[igs]],[yall[igs]],'bo')
         return self.my_guesses[-1]
 
     def guessclick(self,event):
-        print 'clciked'
-        self.last_click=event.xdata
-        return event.xdata
+        self.last_click=np.abs(Xtest - event.xdata).argmin()
+        return self.last_click
     #def guessrelease(self,event):
     #    self.guess_clicked=True
     #    return
     
-    def guesschk(self,x):
+    def guesschk(self,ig):
         #while True:
             #pl.show();pl.draw()
-        g=(x)
-        ig=np.abs(Xtest - g).argmin()
+        #g=Xtest[ig]
         if ig== ip:
             print 'initial guess given'
             return False
         if ig in self.my_guesses:
             print 'already guessed'
             return False
-        if (min(Xtest)<=g<=max(Xtest))==False:
-            print 'not in range'
+        if (min(Xtest)<=Xtest[ig]<=max(Xtest))==False: #never comes here...
+            print 'not in range' #..but i left these two lines
             return False
         return True
         #self.my_guesses.append(g)
@@ -185,7 +193,8 @@ class human(player):
         #return g
 
 hp=human()
-hp.guess()
+#hp.guess()
+print play(hp)
 #if __name__=='__main__': play(human())
 
 ## PLOTS:
