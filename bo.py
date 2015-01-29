@@ -1,7 +1,7 @@
 from __future__ import division
 import numpy as np
 import matplotlib.pyplot as pl
-pl.ion()
+pl.ion()#ioff()#.ion()
 
 """ This is code for simple GP regression. It assumes a zero mean GP Prior """
 
@@ -121,46 +121,71 @@ def play(player):
 class player(object):
     my_guesses=[]
 
+from time import sleep
 class human(player):
     
     def __init__(self):
-        fig = pl.figure()
-        self.cid = fig.canvas.mpl_connect('button_press_event'
-        , lambda event: self.guess(event))
-        pl.ylim((min(yall),max(yall))) #!
+        self.fig = pl.figure()
+        pl.ylim((min(yall)-.2*(-min(yall)+max(yall))
+                ,max(yall)+.2*(-min(yall)+max(yall)) )) #+some margin
         pl.xlim((min(Xtest),max(Xtest)))
+        pl.title("Guess where the max is")
         pl.plot(Xtest[ip],[yall[ip]],'bo')
-        pl.show(block=True)
-        
-   # @staticmethod
-    #def onclick(event):
-     #   self.guess(event)
-#    @staticmethod
-#    def verguess(guess):
-#        if type(guess) is str: 
-    def guess(self,event):
-        while True:
+        #pl.show(block=False)
+        #self.guess_clicked=False
+        pcid = self.fig.canvas.mpl_connect('button_press_event' 
+                , lambda event: self.guessclick(event))
+        #rcid = self.fig.canvas.mpl_connect('button_release_event' 
+        #        , lambda event: self.guessrelease(event))
+        return
+
+    def guess(self):
+        #self.cid = self.fig.canvas.mpl_connect('button_press_event' 
+        #    , lambda event: self.guessclick(event))
+        self.guess_clicked=False
+        #pl.show(block=False)
+        while (pl.waitforbuttonpress(timeout=-1) !=False ): #false is mouse            
+            continue
+        #while (self.guess_clicked==False):# continue
+            #pl.pause(1)
+            #sleep(.1);# print 'not clicked'
+            #self.fig.canvas.mpl_disconnect(cid)
+        print 'clicked'
+        while(self.guesschk(self.last_click)==False):continue
+        self.my_guesses.append(self.last_click)
+        #self.fig.canvas.mpl_disconnect(self.cid)
+        return self.my_guesses[-1]
+
+    def guessclick(self,event):
+        print 'clciked'
+        self.last_click=event.xdata
+        return event.xdata
+    #def guessrelease(self,event):
+    #    self.guess_clicked=True
+    #    return
+    
+    def guesschk(self,x):
+        #while True:
             #pl.show();pl.draw()
-            g=(event.xdata)
-            if g.isdigit()==False:
-                print 'input integer'
-                continue
-            g=int(g)
-            if g== ixmax:
-                print 'initial guess given'
-                continue
-            if g in self.my_guesses:
-                print 'already guessed'
-                continue
-            if (0<=g<N)==False:
-                print 'not in range'
-                continue
-            self.my_guesses.append(g)
-            pl.plot([g],[yall[g]],'bo')
-            break
-        return g
+        g=(x)
+        ig=np.abs(Xtest - g).argmin()
+        if ig== ip:
+            print 'initial guess given'
+            return False
+        if ig in self.my_guesses:
+            print 'already guessed'
+            return False
+        if (min(Xtest)<=g<=max(Xtest))==False:
+            print 'not in range'
+            return False
+        return True
+        #self.my_guesses.append(g)
+            #pl.plot([ig],[yall[ig]],'bo'); pl.show()
+            #break
+        #return g
 
-
+hp=human()
+hp.guess()
 #if __name__=='__main__': play(human())
 
 ## PLOTS:
