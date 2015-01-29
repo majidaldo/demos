@@ -77,14 +77,14 @@ def compute(ipt):#index of point
 def init_initpt():
     global ip
     ip=np.random.choice(N)
-    while(ip==ixmax):
+    while(ismax(ip) == True):
         ip=np.random.choice(N)
-    compute(ip) 
+    compute(ip)
 
 import scipy as sp
 from scipy import stats
 def PI(ix,ixp): #xp is 'encumbent' ..using indices
-    eta=10
+    eta=0
     return sp.stats.norm.cdf((mu[ix]-yall[ixp]-eta)/s[ix])
 def maxiPI(): 
     PIs=(  PI(None
@@ -106,34 +106,38 @@ def ismax(ipt,tol=.02):
         compute(ipt) #this shouldnt be here
     return False
 
-init_randomfuction()
-init_compute()
-init_initpt()
+
 
 def play(player):
+    init_randomfuction()
+    init_compute()
+    init_initpt()
     n=0
     while True:
         guess=ismax(player.guess())
-        n+=1
+        n+=1;
+        if n==N+1: return None
         if guess==True: return n
         else: continue
     
 
 
 class player(object):
-    my_guesses=[]
-
+    def __init__(self):
+        self.my_guesses=[]
+        
 
 class puter(player):
-    self.ixp=ip
     
     def guess(self):
-        self.ixp=
-    
+        self.my_guesses.append(maxiPI())
+        return self.my_guesses[-1]
 
+    
 class human(player):
     
     def __init__(self):
+        super(human, self).__init__()
         self.fig = pl.figure()
         pl.ylim((min(yall)-.2*(-min(yall)+max(yall))
                 ,max(yall)+.2*(-min(yall)+max(yall)) )) #+some margin
@@ -142,7 +146,7 @@ class human(player):
         pl.plot(Xtest[ip],[yall[ip]],'bo')
         #pl.show(block=False)
         #self.guess_clicked=False
-        pcid = self.fig.canvas.mpl_connect('button_press_event' 
+        self.pcid = self.fig.canvas.mpl_connect('button_press_event' 
                 , lambda event: self.guessclick(event))
         #rcid = self.fig.canvas.mpl_connect('button_release_event' 
         #        , lambda event: self.guessrelease(event))
@@ -192,9 +196,17 @@ class human(player):
             #break
         #return g
 
-hp=human()
+
+qt=123213
+while(qt is not None):
+    p=puter()
+    qt=play(p)
+
+
+#hp=human()
+#ptr=puter()
 #hp.guess()
-print play(hp)
+#print play(ptr)
 #if __name__=='__main__': play(human())
 
 ## PLOTS:
