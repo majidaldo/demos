@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as pl
 pl.ion()#ioff()#.ion()
 
-""" This is code for simple GP regression. It assumes a zero mean GP Prior """
+""" bayesian optimizer  """
 
 # This is the true unknown function we are trying to approximate
 #f = lambda x: np.sin(0.9*x).flatten()
@@ -55,7 +55,7 @@ def init_compute():
     computedis=[]
 
 def compute(ipt):#index of point
-    global K, L, Lk, mu, K_, s2, s, y 
+    global K, L, Lk, mu, K_, s, y 
     if ipt in computedis: return    
     if not 0<=ipt<N: raise ValueError('index not in range')
     computedis.append(ipt)
@@ -84,13 +84,15 @@ def init_initpt():
 import scipy as sp
 from scipy import stats
 def PI(ix,ixp): #xp is 'encumbent' ..using indices
-    eta=0
-    return sp.stats.norm.cdf((mu[ix]-yall[ixp]-eta)/s[ix])
-def maxiPI(): 
-    PIs=(  PI(None
-    , computedis[np.argmax(yall[computedis])] ))[0] #toss a dim
-    
-    PIs[computedis]=0 #if i know it then no improvement duh
+    eta=0.05
+    return sp.stats.norm.cdf( (mu[ix]-yall[ixp]-eta)/(s[ix]+1e-6)  )
+
+def maxiPI():
+    global ixp
+    ixp= computedis[np.argmax(yall[computedis])]
+    PIs=(  PI(None, ixp))[0] #toss a dim.
+    PIs[computedis]=-1 #if i know it then no improvement duh
+    PIl.append(PIs)
     return np.argmax(PIs)
 
 def ismax(ipt,tol=.02):
@@ -109,6 +111,8 @@ def ismax(ipt,tol=.02):
 
 
 def play(player):
+    global PIl
+    PIl=[]
     init_randomfuction()
     init_compute()
     init_initpt()
@@ -116,7 +120,7 @@ def play(player):
     while True:
         guess=ismax(player.guess())
         n+=1;
-        if n==N+1: return None
+        if n==N: return None #todo raise exception
         if guess==True: return n
         else: continue
     
@@ -130,7 +134,11 @@ class player(object):
 class puter(player):
     
     def guess(self):
-        self.my_guesses.append(maxiPI())
+        gs=maxiPI()
+        #i'm trying to fix a problem when it's going to the edges
+        #if (0 in self.my_guesses)     and (gs==0):     gs=N-1 #wrap around
+        #if ((N-1) in self.my_guesses) and (gs==(N-1)): gs=0
+        self.my_guesses.append(gs)
         return self.my_guesses[-1]
 
     
@@ -196,11 +204,11 @@ class human(player):
             #break
         #return g
 
-
-qt=123213
-while(qt is not None):
-    p=puter()
-    qt=play(p)
+#
+#qt=123213
+#while(qt is not None):
+#    p=puter()
+#    qt=play(p)
 
 
 #hp=human()
