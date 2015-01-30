@@ -92,7 +92,7 @@ def maxiPI():
     ixp= computedis[np.argmax(yall[computedis])]
     PIs=(  PI(None, ixp))[0] #toss a dim.
     PIs[computedis]=-1 #if i know it then no improvement duh
-    PIl.append(PIs)
+    #PIl.append(PIs)
     return np.argmax(PIs)
 
 def ismax(ipt,tol=.02):
@@ -108,14 +108,15 @@ def ismax(ipt,tol=.02):
         compute(ipt) #this shouldnt be here
     return False
 
-
-
-def play(player):
-    global PIl
-    PIl=[]
+def init_all():
     init_randomfuction()
     init_compute()
     init_initpt()
+
+def play(player):
+    #global PIl
+    #PIl=[]
+    init_all()
     n=0
     while True:
         guess=ismax(player.guess())
@@ -146,7 +147,12 @@ class human(player):
     
     def __init__(self):
         super(human, self).__init__()
-        self.fig = pl.figure()
+        self.fig = pl.gcf();
+        pl.clf()
+        self.pcid = self.fig.canvas.mpl_connect('button_press_event' 
+                , lambda event: self.guessclick(event))
+        
+    def setupplay(self):
         pl.ylim((min(yall)-.2*(-min(yall)+max(yall))
                 ,max(yall)+.2*(-min(yall)+max(yall)) )) #+some margin
         pl.xlim((min(Xtest)-.5,max(Xtest)+.5))
@@ -154,13 +160,14 @@ class human(player):
         pl.plot(Xtest[ip],[yall[ip]],'bo')
         #pl.show(block=False)
         #self.guess_clicked=False
-        self.pcid = self.fig.canvas.mpl_connect('button_press_event' 
-                , lambda event: self.guessclick(event))
+
         #rcid = self.fig.canvas.mpl_connect('button_release_event' 
         #        , lambda event: self.guessrelease(event))
         return
 
     def guess(self):
+        if len(self.my_guesses)==0: #sigh hacky
+            self.setupplay();
         #self.cid = self.fig.canvas.mpl_connect('button_press_event' 
         #    , lambda event: self.guessclick(event))
         #pl.show(block=False)
