@@ -33,13 +33,18 @@ import scipy
 from scipy import interpolate
 def randomfunction(N=N):
     """makes a smooth squiggly function """
-    #number of pts to go through  ~num of curves
-    nc=np.random.choice(10)+5 #from 5 to 15. dont add too many pts
+    #number of pts to go through  ~num of knots
+    nc=np.random.choice(12)+7 #from 7 to 19. dont add too many pts
     #with these vales
     ys=np.random.randn(nc)
     #sprinkle it in the domain
-    xis=np.random.choice(N, size=nc, replace=False) 
-    xis.sort()
+    xis=np.random.choice(N, size=nc, replace=False)
+    xis.sort();
+    #dont want edges flyhing off
+    ys[0]=ys[1]; 
+    ys[-1]=ys[-2]
+    xis[0]=0
+    xis[-1]=N-1
     xs=Xtest[xis].reshape(nc) #get rid of a dim
     spl= scipy.interpolate.InterpolatedUnivariateSpline( xs,ys
     )#,s=.1 )
