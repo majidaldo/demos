@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as pl
 pl.ion()#ioff()#.ion()
 
-""" bayesian optimizer  """
+""" bayesian optimizer game  """
 
 # This is the true unknown function we are trying to approximate
 #f = lambda x: np.sin(0.9*x).flatten()
@@ -55,6 +55,10 @@ def init_randomfuction():
     yall=randomfunction()
     ixmax=np.argmax(yall)
 
+def init_u(etav=.01):#utility funciton
+    global eta
+    eta=etav
+
 def init_compute():
     global computedis
     computedis=[]
@@ -89,16 +93,35 @@ def init_initpt():
 import scipy as sp
 from scipy import stats
 def PI(ix,ixp): #xp is 'encumbent' ..using indices
-    eta=0.05
+    #global eta
+    #eta=.05 #doesn't make much diff
     return sp.stats.norm.cdf( (mu[ix]-yall[ixp]-eta)/(s[ix]+1e-6)  )
-
 def maxiPI():
     global ixp
     ixp= computedis[np.argmax(yall[computedis])]
     PIs=(  PI(None, ixp))[0] #toss a dim.
-    PIs[computedis]=-1 #if i know it then no improvement duh
+    PIs[computedis]=-1e-6 #if i know it then no improvement duh
     #PIl.append(PIs)
     return np.argmax(PIs)
+#see
+#A Tutorial on Bayesian Optimization of
+#Expensive Cost Functions, with Application to
+#Active User Modeling and Hierarchical
+#Reinforcement Learning
+#Eric Brochu, Vlad M. Cora and Nando de Freitas
+#for info about these utility funcitons
+def EI(ix,ixp): #xp is 'encumbent' ..using indices
+    mu_y_eta=mu[ix]-yall[ixp]-eta
+    Z=mu_y_eta/(s[ix]+1e-6)
+    return mu_y_eta*sp.stats.norm.cdf(Z) + s[ix]*sp.stats.norm.pdf(Z)
+def maxiEI():
+    global ixp
+    ixp= computedis[np.argmax(yall[computedis])]
+    PIs=(  PI(None, ixp))[0] #toss a dim.
+    PIs[computedis]=-1e-6 #if i know it then no improvement duh
+    #PIl.append(PIs)
+    return np.argmax(PIs)
+
 
 def ismax(ipt,tol=.02):
     """lets you know if a point is max"""
@@ -113,15 +136,20 @@ def ismax(ipt,tol=.02):
         compute(ipt) #this shouldnt be here
     return False
 
-def init_all():
-    init_randomfuction()
-    init_compute()
-    init_initpt()
+def init_all(kwargs):
+    kwargs.setdefault('rf',{})
+    kwargs.setdefault('compute',{})
+    kwargs.setdefault('u',{})
+    kwargs.setdefault('ip',{})
+    init_randomfuction(**kwargs['rf'])
+    init_compute(**kwargs['compute'])
+    init_u(**kwargs['u'])
+    init_initpt(**kwargs['ip'])
 
-def play(player):
+def play(player,initkw={}):
     #global PIl
     #PIl=[]
-    init_all()
+    init_all(initkw)
     n=0
     while True:
         guess=ismax(player.guess())
@@ -129,8 +157,11 @@ def play(player):
         if n==N: return None #todo raise exception
         if guess==True: return n
         else: continue
-    
 
+#def compare
+
+
+#you cant heuristcall program it
 
 class player(object):
     def __init__(self):
@@ -140,16 +171,13 @@ class player(object):
 class puter(player):
     
     def guess(self):
-        gs=maxiPI()
-        #i'm trying to fix a problem when it's going to the edges
-        #if (0 in self.my_guesses)     and (gs==0):     gs=N-1 #wrap around
-        #if ((N-1) in self.my_guesses) and (gs==(N-1)): gs=0
+        gs=maxiEI()#maxiPI() #didn't see much differece
         self.my_guesses.append(gs)
         return self.my_guesses[-1]
 
     
 class human(player):
-    
+    #todo plt thin vertical lines
     def __init__(self):
         super(human, self).__init__()
         self.fig = pl.gcf();
@@ -158,11 +186,20 @@ class human(player):
                 , lambda event: self.guessclick(event))
         
     def setupplay(self):
-        pl.ylim((min(yall)-.2*(-min(yall)+max(yall))
-                ,max(yall)+.2*(-min(yall)+max(yall)) )) #+some margin
+
         pl.xlim((min(Xtest)-.5,max(Xtest)+.5))
         pl.title("Guess where the max is")
         pl.plot(Xtest[ip],[yall[ip]],'bo')
+        mx=max(yall)
+        mn=min(yall)
+        m=np.random.uniform(.5,1) #players shouldn't know when ..
+        #..they are close to the max
+        mx=max(yall)
+        mn=min(yall)
+        pl.ylim((mn-m*(-mn+mx)
+                ,mx+m*(-mn+mx) )) #+some margin
+        for apt in Xtest: pl.plot([apt,apt],[mn-m*(-mn+mx),mx+m*(-mn+mx)]
+            ,color='.2',lw=.2)
         #pl.show(block=False)
         #self.guess_clicked=False
 
@@ -173,11 +210,18 @@ class human(player):
     def guess(self):
         if len(self.my_guesses)==0: #sigh hacky
             self.setupplay();
+        #m=.5 #a margin
+        #mx=max(yall[computedis])
+        #mn=min(yall[computedis])
+        #pl.ylim((mn-m*(-mn+mx)
+        #        ,mx+m*(-mn+mx) )) #+some margin
         #self.cid = self.fig.canvas.mpl_connect('button_press_event' 
         #    , lambda event: self.guessclick(event))
         #pl.show(block=False)
         while ( pl.waitforbuttonpress(timeout=-1) ==False ): #false is mouse
-            if ( self.guesschk(self.last_click)==True ): break
+            try:
+                if ( self.guesschk(self.last_click)==True ): break
+            except: pass
             else: continue
         #while (self.guess_clicked==False):# continue
             #pl.pause(1)
@@ -191,7 +235,10 @@ class human(player):
         return self.my_guesses[-1]
 
     def guessclick(self,event):
-        self.last_click=np.abs(Xtest - event.xdata).argmin()
+        try: self.last_click=np.abs(Xtest - event.xdata).argmin()
+        except:
+            self.last_click=None
+            return None
         return self.last_click
     #def guessrelease(self,event):
     #    self.guess_clicked=True
@@ -201,7 +248,7 @@ class human(player):
         #while True:
             #pl.show();pl.draw()
         #g=Xtest[ig]
-        if ig== ip:
+        if ig== ip:#todo except no coorrds (nonetype)
             print 'initial guess given'
             return False
         if ig in self.my_guesses:
@@ -215,7 +262,7 @@ class human(player):
             #pl.plot([ig],[yall[ig]],'bo'); pl.show()
             #break
         #return g
-
+#
 #
 #qt=123213
 #while(qt is not None):
