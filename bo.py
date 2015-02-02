@@ -5,10 +5,6 @@ pl.ion()#ioff()#.ion()
 
 """ bayesian optimizer game  """
 
-# This is the true unknown function we are trying to approximate
-#f = lambda x: np.sin(0.9*x).flatten()
-#f = lambda x: (0.25*(x**2)).flatten()
-
 
 # Define the kernel
 def kernel(a, b):
@@ -22,10 +18,6 @@ sn = 0#.05    # noise variance.
 
 # points we're going to make predictions at.
 Xtest = np.linspace(-5, 5, N).reshape(-1,1)
-# Sample some input points and noisy versions of the function evaluated at
-# these points. 
-#X = np.random.uniform(-5, 5, size=(n,1))
-#yall = f(Xtest) + sn*np.random.randn(N)
 
 
 from numpy import random
@@ -161,7 +153,6 @@ def play(player,initkw={}):
 #def compare
 
 
-#you cant heuristcall program it
 
 class player(object):
     def __init__(self):
@@ -218,37 +209,18 @@ class human(player):
                 ,mx+m*(-mn+mx) )) #+some margin
         for apt in Xtest: pl.plot([apt,apt],[mn-m*(-mn+mx),mx+m*(-mn+mx)]
             ,color='.2',lw=.2)
-        #pl.show(block=False)
-        #self.guess_clicked=False
-
-        #rcid = self.fig.canvas.mpl_connect('button_release_event' 
-        #        , lambda event: self.guessrelease(event))
         return
 
     def guess(self):
         if len(self.my_guesses)==0: #sigh hacky
             self.setupplay();
-        #m=.5 #a margin
-        #mx=max(yall[computedis])
-        #mn=min(yall[computedis])
-        #pl.ylim((mn-m*(-mn+mx)
-        #        ,mx+m*(-mn+mx) )) #+some margin
-        #self.cid = self.fig.canvas.mpl_connect('button_press_event' 
-        #    , lambda event: self.guessclick(event))
-        #pl.show(block=False)
         while ( pl.waitforbuttonpress(timeout=-1) ==False ): #false is mouse
             try:
                 if ( self.guesschk(self.last_click)==True ): break
             except: pass
             else: continue
-        #while (self.guess_clicked==False):# continue
-            #pl.pause(1)
-            #sleep(.1);# print 'not clicked'
-            #self.fig.canvas.mpl_disconnect(cid)
-        #while(self.guesschk(self.last_click)==False): continue
         igs=self.last_click
         self.my_guesses.append(igs)
-        #self.fig.canvas.mpl_disconnect(self.cid)
         pl.plot([Xtest[igs]],[yall[igs]],'bo')
         return self.my_guesses[-1]
 
@@ -258,13 +230,8 @@ class human(player):
             self.last_click=None
             return None
         return self.last_click
-    #def guessrelease(self,event):
-    #    self.guess_clicked=True
-    #    return
     
-    def guesschk(self,ig,printer=lambda x: print(x)):
-        #while True:
-            #pl.show();pl.draw()
+    def guesschk(self,ig,printer=print):
         #g=Xtest[ig]
         if ig== ip:#todo except no coorrds (nonetype)
             print('initial guess given')
@@ -276,10 +243,7 @@ class human(player):
             print('not in range') #..but i left these two lines
             return False
         return True
-        #self.my_guesses.append(g)
-            #pl.plot([ig],[yall[ig]],'bo'); pl.show()
-            #break
-        #return g
+
 #
 #
 #qt=123213
