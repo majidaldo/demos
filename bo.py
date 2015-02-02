@@ -40,7 +40,7 @@ def randomfunction(N=N):
     #sprinkle it in the domain
     xis=np.random.choice(N, size=nc, replace=False)
     xis.sort();
-    #dont want edges flyhing off
+    #dont want edges flyhing off or diving down
     ys[0]=ys[1]; 
     ys[-1]=ys[-2]
     xis[0]=0
@@ -109,7 +109,7 @@ def maxiPI():
 #Active User Modeling and Hierarchical
 #Reinforcement Learning
 #Eric Brochu, Vlad M. Cora and Nando de Freitas
-#for info about these utility funcitons
+#for an overview of these utility funcitons
 def EI(ix,ixp): #xp is 'encumbent' ..using indices
     mu_y_eta=mu[ix]-yall[ixp]-eta
     Z=mu_y_eta/(s[ix]+1e-6)
@@ -175,7 +175,26 @@ class puter(player):
         self.my_guesses.append(gs)
         return self.my_guesses[-1]
 
+from __future__ import print_function
+class plttxt(object):
     
+    def __init__(self,fig='current'):
+        if fig == 'current': self.fig=pl.gcf()
+        else: self.fig=fig
+    
+    def printt(self,txt):
+        self.clear()
+        self.txt=txt
+        self.fig.text(0,0,txt)
+        #self.txt=pl.text(0,0,txt)
+        pl.draw()
+    def clear(self):
+        #assuming it was the last one in
+        try: self.fig.texts.remove(self.fig.texts[-1])
+        except: pass        
+        pl.draw()
+
+
 class human(player):
     #todo plt thin vertical lines
     def __init__(self):
@@ -186,13 +205,12 @@ class human(player):
                 , lambda event: self.guessclick(event))
         
     def setupplay(self):
-
         pl.xlim((min(Xtest)-.5,max(Xtest)+.5))
         pl.title("Guess where the max is")
         pl.plot(Xtest[ip],[yall[ip]],'bo')
         mx=max(yall)
         mn=min(yall)
-        m=np.random.uniform(.5,1) #players shouldn't know when ..
+        m=np.random.uniform(.5,1) #plot margin.players shouldn't know when ..
         #..they are close to the max
         mx=max(yall)
         mn=min(yall)
@@ -244,18 +262,18 @@ class human(player):
     #    self.guess_clicked=True
     #    return
     
-    def guesschk(self,ig):
+    def guesschk(self,ig,printer=lambda x: print(x)):
         #while True:
             #pl.show();pl.draw()
         #g=Xtest[ig]
         if ig== ip:#todo except no coorrds (nonetype)
-            print 'initial guess given'
+            print('initial guess given')
             return False
         if ig in self.my_guesses:
-            print 'already guessed'
+            print('already guessed')
             return False
         if (min(Xtest)<=Xtest[ig]<=max(Xtest))==False: #never comes here...
-            print 'not in range' #..but i left these two lines
+            print('not in range') #..but i left these two lines
             return False
         return True
         #self.my_guesses.append(g)
