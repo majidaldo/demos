@@ -303,20 +303,3 @@ class human(player):
 
 
 
-#hp=human()
-#ptr=puter()
-#hp.guess()
-#print play(ptr)
-#if __name__=='__main__': play(human())
-
-## PLOTS:
-#pl.figure(1)
-#pl.clf()
-#pl.plot(X, y, 'r+', ms=20)
-#pl.plot(Xtest, f(Xtest), 'b-')
-#pl.gca().fill_between(Xtest.flat, mu-3*s, mu+3*s, color="#dddddd")
-#pl.plot(Xtest, mu, 'r--', lw=2)
-#pl.savefig('predictive.png', bbox_inches='tight')
-#pl.title('Mean predictions plus 3 st.deviations')
-#pl.axis([-5, 5, -3, 3])
-
