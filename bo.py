@@ -187,7 +187,7 @@ def game():
         else:# nh==nc:
             printer('Tie! You both took '+str(nh)+' tries. (click to continue)')
         pl.plot([Xtest[ixmax]],[np.max(yall)],'r^',ms=12)
-        pl.plot(Xtest[cp.my_guesses],yall[cp.my_guesses],'gx',ms=10)
+        pl.plot(Xtest[cp.my_guesses],yall[cp.my_guesses],'gx',ms=7,mew=1)
         pl.plot(Xtest,yall,c='black')
         while ( pl.waitforbuttonpress(timeout=-1) !=False ): #false is mouse
             continue
@@ -205,7 +205,7 @@ def game():
                 +' (click to continue)')
         while ( pl.waitforbuttonpress(timeout=-1) !=False ): #false is mouse
             continue
-#plt blk line   
+
 
 class player(object):
     def __init__(self):
@@ -302,4 +302,4 @@ class human(player):
         return True
 
 
-
+if __name__=='__main__': game()
