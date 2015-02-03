@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as pl
 pl.ion()#ioff()#.ion()
@@ -23,8 +24,9 @@ Xtest = np.linspace(-5, 5, N).reshape(-1,1)
 from numpy import random
 import scipy
 from scipy import interpolate
-def randomfunction(N=N):
+def randomfunction(N=N,seed=None):
     """makes a smooth squiggly function """
+    np.random.seed(seed=seed)
     #number of pts to go through  ~num of knots
     nc=np.random.choice(12)+7 #from 7 to 19. dont add too many pts
     #with these vales
@@ -42,9 +44,9 @@ def randomfunction(N=N):
     )#,s=.1 )
     return spl(Xtest[:,0])
 
-def init_randomfuction():
+def init_randomfuction(**kwargs):
     global yall, ixmax #sinner!
-    yall=randomfunction()
+    yall=randomfunction(**kwargs)
     ixmax=np.argmax(yall)
 
 def init_u(etav=.01):#utility funciton
@@ -96,11 +98,11 @@ def maxiPI():
     #PIl.append(PIs)
     return np.argmax(PIs)
 #see
-#A Tutorial on Bayesian Optimization of
+#"A Tutorial on Bayesian Optimization of
 #Expensive Cost Functions, with Application to
 #Active User Modeling and Hierarchical
-#Reinforcement Learning
-#Eric Brochu, Vlad M. Cora and Nando de Freitas
+#Reinforcement Learning"
+#by Eric Brochu, Vlad M. Cora and Nando de Freitas
 #for an overview of these utility funcitons
 def EI(ix,ixp): #xp is 'encumbent' ..using indices
     mu_y_eta=mu[ix]-yall[ixp]-eta
@@ -138,10 +140,11 @@ def init_all(kwargs):
     init_u(**kwargs['u'])
     init_initpt(**kwargs['ip'])
 
-def play(player,initkw={}):
+def play(player):#,initkw={}):
+    """returns number of guesses"""
     #global PIl
     #PIl=[]
-    init_all(initkw)
+    #init_all(initkw)
     n=0
     while True:
         guess=ismax(player.guess())
@@ -150,9 +153,59 @@ def play(player,initkw={}):
         if guess==True: return n
         else: continue
 
-#def compare
 
 
+def game():
+    
+    pt=plttxt()    
+    printer=lambda txt:pt.printt(txt)
+     
+    scores={'h':0,'c':0}
+    
+    for i in xrange(999):
+        stt=np.random.randint(1,123456789)
+        
+        cp=puter()
+        hp=human(printer=printer)      
+        printer('Try, human.')
+        init_all({'rf':{'seed':stt}})
+        nh=play(hp)
+        
+        init_all({'rf':{'seed':stt}})
+        nc=play(cp)
+
+        if nh<nc:
+            w='You win this time, human!'
+            printer(w+' '
+            +'You took '+str(nh)+' tries while the computer took '+str(nc)
+            +'. (click to continue)')
+        elif nh>nc:
+            w='Computer won!'
+            printer(w+' '
+            +'You took '+str(nh)+' tries while the computer took '+str(nc)
+            +'. (click to continue)')
+        else:# nh==nc:
+            printer('Tie! You both took '+str(nh)+' tries. (click to continue)')
+        pl.plot([Xtest[ixmax]],[np.max(yall)],'r^',ms=12)
+        pl.plot(Xtest[cp.my_guesses],yall[cp.my_guesses],'gx',ms=10)
+        pl.plot(Xtest,yall,c='black')
+        while ( pl.waitforbuttonpress(timeout=-1) !=False ): #false is mouse
+            continue
+        scores['h']+=nh
+        scores['c']+=nc
+        
+        
+        if   scores['h']<scores['c']: ptr=' <-- '
+        elif scores['h']>scores['c']: ptr=' --> '
+        else:                         ptr=' <-> '
+        printer('Average scores after '+str(1+i)+' games: '\
+                +'You= '+       format((scores['h'])/float(i+1),'.1f')\
+                +ptr
+                +' Computer= '+format((scores['c'])/float(i+1),'.1f')\
+                +' (click to continue)')
+        while ( pl.waitforbuttonpress(timeout=-1) !=False ): #false is mouse
+            continue
+#plt blk line   
 
 class player(object):
     def __init__(self):
@@ -166,7 +219,7 @@ class puter(player):
         self.my_guesses.append(gs)
         return self.my_guesses[-1]
 
-from __future__ import print_function
+
 class plttxt(object):
     
     def __init__(self,fig='current'):
@@ -176,8 +229,7 @@ class plttxt(object):
     def printt(self,txt):
         self.clear()
         self.txt=txt
-        self.fig.text(0,0,txt)
-        #self.txt=pl.text(0,0,txt)
+        self.fig.text(.15,0.02,txt)
         pl.draw()
     def clear(self):
         #assuming it was the last one in
@@ -188,14 +240,17 @@ class plttxt(object):
 
 class human(player):
     #todo plt thin vertical lines
-    def __init__(self):
+    def __init__(self,printer=print):
         super(human, self).__init__()
         self.fig = pl.gcf();
+        self.fig.patch.set_facecolor('white')
+        self.printer=printer
         pl.clf()
         self.pcid = self.fig.canvas.mpl_connect('button_press_event' 
                 , lambda event: self.guessclick(event))
         
     def setupplay(self):
+        pl.axis('off')
         pl.xlim((min(Xtest)-.5,max(Xtest)+.5))
         pl.title("Guess where the max is")
         pl.plot(Xtest[ip],[yall[ip]],'bo')
@@ -231,25 +286,21 @@ class human(player):
             return None
         return self.last_click
     
-    def guesschk(self,ig,printer=print):
+    def guesschk(self,ig):
         #g=Xtest[ig]
         if ig== ip:#todo except no coorrds (nonetype)
-            print('initial guess given')
+            self.printer('initial guess given')
             return False
         if ig in self.my_guesses:
-            print('already guessed')
+            self.printer('already guessed')
             return False
         if (min(Xtest)<=Xtest[ig]<=max(Xtest))==False: #never comes here...
-            print('not in range') #..but i left these two lines
+            self.printer('not in range') #..but i left these two lines
             return False
+        #finally
+        self.printer('')
         return True
 
-#
-#
-#qt=123213
-#while(qt is not None):
-#    p=puter()
-#    qt=play(p)
 
 
 #hp=human()
