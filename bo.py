@@ -1,7 +1,10 @@
 from __future__ import division
 from __future__ import print_function
 import numpy as np
+import matplotlib
+#matplotlib.use("gtkagg")
 import matplotlib.pyplot as pl
+
 pl.ion()#ioff()#.ion()
 
 """ bayesian optimizer game  """
@@ -187,7 +190,7 @@ def game():
         else:# nh==nc:
             printer('Tie! You both took '+str(nh)+' tries. (click to continue)')
         pl.plot([Xtest[ixmax]],[np.max(yall)],'r^',ms=12)
-        pl.plot(Xtest[cp.my_guesses],yall[cp.my_guesses],'gx',ms=7,mew=1)
+        pl.plot(Xtest[cp.my_guesses],yall[cp.my_guesses],'gx',ms=8,mew=1)
         pl.plot(Xtest,yall,c='black')
         while ( pl.waitforbuttonpress(timeout=-1) !=False ): #false is mouse
             continue
