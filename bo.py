@@ -2,7 +2,6 @@ from __future__ import division
 from __future__ import print_function
 import numpy as np
 import matplotlib
-#matplotlib.use("gtkagg")
 import matplotlib.pyplot as pl
 
 pl.ion()#ioff()#.ion()
@@ -157,11 +156,12 @@ def play(player):#,initkw={}):
         else: continue
 
 
-
+	
 def game():
     
     pt=plttxt()    
     printer=lambda txt:pt.printt(txt)
+
      
     scores={'h':0,'c':0}
     
@@ -192,7 +192,7 @@ def game():
         pl.plot([Xtest[ixmax]],[np.max(yall)],'r^',ms=12)
         pl.plot(Xtest[cp.my_guesses],yall[cp.my_guesses],'gx',ms=8,mew=1)
         pl.plot(Xtest,yall,c='black')
-        while ( pl.waitforbuttonpress(timeout=-1) !=False ): #false is mouse
+        while ( (pl.waitforbuttonpress(timeout=-1) !=False) ): #false is mouse
             continue
         scores['h']+=nh
         scores['c']+=nc
@@ -206,7 +206,7 @@ def game():
                 +ptr
                 +' Computer= '+format((scores['c'])/float(i+1),'.1f')\
                 +' (click to continue)')
-        while ( pl.waitforbuttonpress(timeout=-1) !=False ): #false is mouse
+        while ( (pl.waitforbuttonpress(timeout=-1) !=False) ): #false is mouse
             continue
 
 
@@ -267,6 +267,7 @@ class human(player):
                 ,mx+m*(-mn+mx) )) #+some margin
         for apt in Xtest: pl.plot([apt,apt],[mn-m*(-mn+mx),mx+m*(-mn+mx)]
             ,color='.2',lw=.2)
+        pl.draw()
         return
 
     def guess(self):
@@ -279,7 +280,7 @@ class human(player):
             else: continue
         igs=self.last_click
         self.my_guesses.append(igs)
-        pl.plot([Xtest[igs]],[yall[igs]],'bo')
+        pl.plot([Xtest[igs]],[yall[igs]],'bo'); pl.draw()
         return self.my_guesses[-1]
 
     def guessclick(self,event):
@@ -305,4 +306,11 @@ class human(player):
         return True
 
 
-if __name__=='__main__': game()
+if __name__=='__main__':
+    import sys
+    def switch_closed(event):
+        sys.exit(0)
+		
+    cf=pl.gcf(); 
+    cf.canvas.mpl_connect('close_event', switch_closed)
+    game()
