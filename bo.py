@@ -2,6 +2,7 @@ from __future__ import division
 from __future__ import print_function
 import numpy as np
 import matplotlib
+matplotlib.rcParams['toolbar'] = 'None'
 import matplotlib.pyplot as pl
 
 pl.ion()#ioff()#.ion()
@@ -305,8 +306,10 @@ class human(player):
         self.printer('')
         return True
 
-
 if __name__=='__main__':
+    main()
+
+def main():
     import sys
     def switch_closed(event):
         sys.exit(0)
