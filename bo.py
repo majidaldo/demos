@@ -3,7 +3,7 @@ from __future__ import print_function
 import numpy as np
 import matplotlib
 matplotlib.rcParams['toolbar'] = 'None'
-import matplotlib.pyplot as pl
+matplotlib.rcParams['figure.figsize'] = 14, 5
 
 pl.ion()#ioff()#.ion()
 
@@ -268,6 +268,7 @@ class human(player):
                 ,mx+m*(-mn+mx) )) #+some margin
         for apt in Xtest: pl.plot([apt,apt],[mn-m*(-mn+mx),mx+m*(-mn+mx)]
             ,color='.2',lw=.2)
+        pl.tight_layout()
         pl.draw()
         return
 
